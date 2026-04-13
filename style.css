@@ -3,7 +3,7 @@
 body {
     background: #1a1a1a;
     color: #eee;
-    font-family: 'inter', sans-serif;
+    font-family: 'Inter', sans-serif;
     padding: 40px 20px;
 }
 
@@ -15,3 +15,47 @@ body {
     border-radius: 15px;
     border-top: 5px solid #ff4d4d;
 }
+
+h1 { font-size: 1.5rem; margin-bottom: 1rem; color: #ff4d4d; }
+
+input, select {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    background: #333;
+    border: 1px solid #444;
+    color: white;
+    border-radius: 8px;
+}
+
+button {
+    background: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 15px;
+    width: 100%;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover { background: #ff3333; transform: translateY(-2px); }
+
+
+#mensagem { height: 20px; font-size: 0.9rem; margin: 10px 0; text-align: center; }
+.sucesso { color: #4caf50; }
+.erro { color: #f44336; }
+
+
+#ListaDoadores { margin-top: 30px; border-top: 1px solid #444; padding-top: 20px; }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 0.85rem;
+}
+
+th { text-align: left; color: #888; padding-bottom: 10px; }
+td { padding: 10px 0; border-bottom: 1px solid #333; }
