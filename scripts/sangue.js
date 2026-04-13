@@ -1,81 +1,138 @@
 class GerenciadorDoadores {
     constructor() {
-        this.form = document.getElementById('formDoador');
-        this.tabelaContainer = document.getElementById('tabelaContainer');
-        this.mensagemDiv = document.getElementById('mensagem');
         
-        
-        this.doadores = JSON.parse(localStorage.getItem('doadores_db')) || [];
+        this.elementos = {
+            form: document.getElementById('formDoador'),
+            tabela: document.getElementById('tabelaContainer'),
+            mensagem: document.getElementById('mensagem'),
+            inputs: {
+                nome: document.getElementById('nome'),
+                idade: document.getElementById('age'),
+                peso: document.getElementById('peso'),
+                tipo: document.getElementById('tipo sanguineo'),
+                cidade: document.getElementById('cidade'),
+                estado: document.getElementById('Estado')
+            }
+        };
+
+        this.CHAVE_STORAGE = 'doadores_db';
+        this.doadores = this.carregarDoadores();
         
         this.init();
     }
 
     init() {
-        this.form.addEventListener('submit', (e) => this.cadastrar(e));
+        this.elementos.form.addEventListener('submit', (e) => this.handleSubmit(e));
         this.renderizarTabela();
     }
 
-    cadastrar(e) {
+    carregarDoadores() {
+        try {
+            return JSON.parse(localStorage.getItem(this.CHAVE_STORAGE)) || [];
+        } catch (error) {
+            console.error("Erro ao carregar dados do Storage", error);
+            return [];
+        }
+    }
+
+    handleSubmit(e) {
         e.preventDefault();
 
+        
+        const { nome, idade, peso, tipo, cidade, estado } = this.elementos.inputs;
+
         const novoDoador = {
-            nome: document.getElementById('nome').value,
-            idade: parseInt(document.getElementById('age').value),
-            peso: parseFloat(document.getElementById('peso').value),
-            tipo: document.getElementById('tipo sanguineo').value,
-            local: `${document.getElementById('cidade').value}/${document.getElementById('Estado').value.toUpperCase()}`
+            nome: nome.value.trim(),
+            idade: parseInt(idade.value),
+            peso: parseFloat(peso.value),
+            tipo: tipo.value,
+            local: `${cidade.value.trim()}/${estado.value.toUpperCase().trim()}`,
+            dataCadastro: new Date().toLocaleDateString('pt-BR') 
         };
 
-      
-        
-        if (novoDoador.peso < 50 || novoDoador.idade < 16) {
-            this.notificar("Requisitos básicos não atendidos (Peso/Idade).", "erro");
-            return;
+        if (this.isValido(novoDoador)) {
+            this.doadores.push(novoDoador);
+            this.salvar();
+            this.notificar("Doador cadastrado com sucesso!", "sucesso");
+            this.elementos.form.reset();
         }
+    }
 
-        this.doadores.push(novoDoador);
-        this.salvar();
-        this.notificar("Cadastro realizado!", "sucesso");
-        this.form.reset();
+
+    isValido(doador) {
+        if (!doador.nome || !doador.tipo) {
+            this.notificar("Preencha todos os campos obrigatórios.", "erro");
+            return false;
+        }
+        if (doador.peso < 50) {
+            this.notificar("Peso insuficiente para doação (< 50kg).", "erro");
+            return false;
+        }
+        if (doador.idade < 16 || doador.idade > 69) {
+            this.notificar("Idade fora da faixa permitida (16-69 anos).", "erro");
+            return false;
+        }
+        return true;
     }
 
     salvar() {
-        localStorage.setItem('doadores_db', JSON.stringify(this.doadores));
+        localStorage.setItem(this.CHAVE_STORAGE, JSON.stringify(this.doadores));
         this.renderizarTabela();
     }
 
+    limparHistorico() {
+        if (confirm("Tem certeza que deseja apagar todos os doadores?")) {
+            localStorage.removeItem(this.CHAVE_STORAGE);
+            this.doadores = [];
+            this.renderizarTabela();
+            this.notificar("Histórico limpo.", "sucesso");
+        }
+    }
+
     notificar(msg, classe) {
-        this.mensagemDiv.textContent = msg;
-        this.mensagemDiv.className = classe;
-        setTimeout(() => this.mensagemDiv.className = "", 3000);
+        const { mensagem } = this.elementos;
+        mensagem.textContent = msg;
+        mensagem.className = classe;
+        setTimeout(() => mensagem.className = "", 3000);
     }
 
     renderizarTabela() {
         if (this.doadores.length === 0) {
-            this.tabelaContainer.innerHTML = "<p>Nenhum registro encontrado.</p>";
+            this.elementos.tabela.innerHTML = `
+                <div class="alerta-vazio">Nenhum doador encontrado.</div>
+            `;
             return;
         }
 
         const linhas = this.doadores.map(d => `
             <tr>
                 <td>${d.nome}</td>
-                <td><strong>${d.tipo}</strong></td>
+                <td><span class="badge-sangue">${d.tipo}</span></td>
                 <td>${d.idade} anos</td>
                 <td>${d.local}</td>
+                <td><small>${d.dataCadastro}</small></td>
             </tr>
         `).join('');
 
-        this.tabelaContainer.innerHTML = `
+        this.elementos.tabela.innerHTML = `
             <table>
                 <thead>
-                    <tr><th>Doador</th><th>Sangue</th><th>Idade</th><th>Localidade</th></tr>
+                    <tr>
+                        <th>Doador</th>
+                        <th>Tipo</th>
+                        <th>Idade</th>
+                        <th>Localidade</th>
+                        <th>Data</th>
+                    </tr>
                 </thead>
                 <tbody>${linhas}</tbody>
             </table>
-            <button onclick="localStorage.clear(); location.reload();" style="margin-top:10px; background:#666; font-size:12px;">Limpar Tudo</button>
+            <button id="btnLimpar" class="btn-secundario">Limpar Base de Dados</button>
         `;
+
+        
+        document.getElementById('btnLimpar').addEventListener('click', () => this.limparHistorico());
     }
 }
-
 
 new GerenciadorDoadores();
